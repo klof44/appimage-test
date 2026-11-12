@@ -12,7 +12,7 @@ cp -r "$DGDIR" "$APPDIR/usr/"
 
 cp -a /usr/lib/mono/4.5 "$APPDIR/usr/mono/4.5"
 cp -a /usr/lib/mono/gac "$APPDIR/usr/mono/gac"
-cp -a /usr/bin/mono "$APPDIR/usr/mono-sgen"
+cp -a /usr/bin/mono-sgen "$APPDIR/usr/mono-sgen"
 cp -a /etc/mono "$APPDIR/etc/mono"
 
 cat > "$APPDIR/AppRun" <<'EOF'
