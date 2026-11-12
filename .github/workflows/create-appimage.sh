@@ -26,22 +26,6 @@ MONO="$APPDIR/usr/mono"
 LOGDIR="${XDG_DATA_HOME:-$HOME/.local/share}/DuckGameRebuilt"
 mkdir -p "$LOGDIR" 2>/dev/null || LOGDIR="$(mktemp -d)"
 
-# The game requires Steam to be running (Steam app id 312530).
-if ! pgrep -x steam >/dev/null 2>&1 \
-   && ! pgrep -x steamwebhelper >/dev/null 2>&1 \
-   && ! pgrep -f com.valvesoftware.Steam >/dev/null 2>&1; then
-  echo "Steam is not running - Duck Game Rebuilt needs it. Trying to start Steam..."
-  if command -v steam >/dev/null 2>&1; then
-    setsid steam >/dev/null 2>&1 &
-  elif command -v flatpak >/dev/null 2>&1 \
-       && flatpak info com.valvesoftware.Steam >/dev/null 2>&1; then
-    setsid flatpak run com.valvesoftware.Steam >/dev/null 2>&1 &
-  else
-    echo "WARNING: Steam was not found on this system. The game will likely" >&2
-    echo "         crash on startup unless you pass -nosteam (offline/lan only)." >&2
-  fi
-fi
-
 cd "$GAME" || exit 1
 
 # A) Bundled Mono runtime (default) — no system Mono needed,
