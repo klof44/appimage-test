@@ -1,7 +1,8 @@
 set -xeuo pipefail
 
-DGDIR="./bin"
-APPDIR="./DuckGameRebuilt.AppDir"
+ROOT=$(pwd)
+DGDIR="$ROOT/bin"
+APPDIR="$ROOT/DuckGameRebuilt.AppDir"
 
 rm -rf "$APPDIR"
 mkdir -p "$APPDIR/usr/" "$APPDIR/usr/share/metainfo" \
@@ -14,9 +15,11 @@ MONO="$APPDIR/usr/mono"
 mkdir -p "$MONO/bin" "$MONO/lib" "$MONO/etc" "$MONO/lib/mono"
 cp -L "$(readlink -f "$(command -v mono-sgen)")" "$MONO/bin/mono-sgen"
 
+cd /usr/lib
 cp libmono-native.so libmono-native.so.0 libmono-btls-shared.so \
    libMonoPosixHelper.so libMonoWupportW.so \
-   libgdiplus.so libgdiplus.so.0 "$MONO/lib"
+   libgdiplus.so libgdiplus.so.0 "$APPDIR/lib"
+cd $ROOT
 
 cp -a /usr/lib/mono/4.5 "$MONO/lib/mono/4.5"
 cp -a /usr/lib/mono/gac "$MONO/lib/mono/gac"
