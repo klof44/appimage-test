@@ -29,8 +29,8 @@ jobs:
           mkdir ./bin
           cp ./DuckGame/lib/* ./bin
 
-      - name: Build with AutoUpdater
-        run: msbuild /m /p:Configuration=ReleaseAutoUpdater .
+      - name: Build without AutoUpdater
+        run: msbuild /m /p:Configuration=Release .
         
       - name: Create AppImage
         run: |

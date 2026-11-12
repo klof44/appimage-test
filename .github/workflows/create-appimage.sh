@@ -75,7 +75,7 @@ Name=Duck Game Rebuilt
 GenericName=Duck Game client
 Comment=Duck Game decompiled & rebuilt with added features (requires Steam)
 Exec=AppRun
-Icon=$APP_ID
+Icon=duckgamerebuilt
 Terminal=false
 Categories=Game;
 EOF
