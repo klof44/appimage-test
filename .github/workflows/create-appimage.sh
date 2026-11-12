@@ -13,6 +13,10 @@ cp -r "$DGDIR" "$APPDIR/usr/"
 
 MONO="$APPDIR/usr/mono"
 mkdir -p "$MONO/bin" "$MONO/lib" "$MONO/etc" "$MONO/lib/mono"
+
+cp -L "$SDL_PREFIX/lib/libSDL3.so.0" "$APPDIR/usr/mono/lib/"
+ln -sfn libSDL3.so.0 "$APPDIR/usr/mono/lib/libSDL3.so"
+
 cp -L "$(readlink -f "$(command -v mono-sgen)")" "$MONO/bin/mono-sgen"
 
 find_lib() {  # find_lib <name> -> print first existing path, else return 1

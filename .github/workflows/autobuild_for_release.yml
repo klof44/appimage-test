@@ -31,11 +31,19 @@ jobs:
 
       - name: Build without AutoUpdater
         run: msbuild /m /p:Configuration=Release .
+
+      - name: Build SDL3 for AppImage
+        uses: libsdl-org/setup-sdl@main
+        id: sdl
+        with:
+          install-linux-dependencies: true   # installs the X11/Wayland/audio dev packages
+          version: 3-latest
         
       - name: Create AppImage
         run: |
           sudo apt-get update
           sudo apt-get install -y libfuse2
+          export SDL_PREFIX="${{ steps.sdl.outputs.prefix }}"
           bash ./.github/workflows/create-appimage.sh
 
       - name: Upload binaries to release
