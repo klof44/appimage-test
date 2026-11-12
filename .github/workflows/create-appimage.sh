@@ -80,8 +80,8 @@ Terminal=false
 Categories=Game;
 EOF
 
-cp "$DGDIR/icon.png" "$APPDIR/duckgamerebuilt.png"
-cp "$DGDIR/icon.png" "$APPDIR/usr/share/icons/hicolor/256x256/apps/duckgamerebuilt.png"
+cp "./icon.png" "$APPDIR/duckgamerebuilt.png"
+cp "./icon.png" "$APPDIR/usr/share/icons/hicolor/256x256/apps/duckgamerebuilt.png"
 
 chmod a+rX "$APPDIR" -R
 chmod a+rx "$APPDIR/AppRun"
