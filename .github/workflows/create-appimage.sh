@@ -12,7 +12,7 @@ cp -r "$DGDIR" "$APPDIR/usr/"
 
 cp -a /usr/lib/mono/4.5 "$APPDIR/usr/mono/4.5"
 cp -a /usr/lib/mono/gac "$APPDIR/usr/mono/gac"
-cp -a /usr/bin/mono "$APPDIR/usr/mono"
+cp -a /usr/bin/mono "$APPDIR/usr/mono-sgen"
 cp -a /etc/mono "$APPDIR/etc/mono"
 
 cat > "$APPDIR/AppRun" <<'EOF'
@@ -31,11 +31,11 @@ cd "$GAME" || exit 1
 
 # A) Bundled Mono runtime (default) — no system Mono needed,
 #    works on immutable distros (Silverblue, SteamOS, NixOS, ...).
-if [ -x "$MONO/mono" ] && [ -d "$MONO/lib/mono/gac" ]; then
+if [ -x "$MONO/mono-sgen" ] && [ -d "$MONO/lib/mono/gac" ]; then
   export MONO_GAC_PREFIX="$MONO"
   export MONO_CFG_DIR="$MONO/etc"
   export LD_LIBRARY_PATH="$MONO/lib:$GAME${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
-  "$MONO/mono" ./DuckGame.exe "$@" 2>&1 | tee "$LOGDIR/outputlog.txt"
+  "$MONO/mono-sgen" ./DuckGame.exe "$@" 2>&1 | tee "$LOGDIR/outputlog.txt"
   exit "${PIPESTATUS[0]}"
 fi
 
