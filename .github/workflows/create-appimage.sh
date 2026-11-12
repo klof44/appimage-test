@@ -15,11 +15,38 @@ MONO="$APPDIR/usr/mono"
 mkdir -p "$MONO/bin" "$MONO/lib" "$MONO/etc" "$MONO/lib/mono"
 cp -L "$(readlink -f "$(command -v mono-sgen)")" "$MONO/bin/mono-sgen"
 
-cd /usr/lib
-cp libmono-native.so libmono-native.so.0 libmono-btls-shared.so \
-   libMonoPosixHelper.so libMonoSupportW.so \
-   libgdiplus.so libgdiplus.so.0 "$MONO/lib"
-cd $ROOT
+find_lib() {  # find_lib <name> -> print first existing path, else return 1
+  if [ -e "/usr/lib/$1" ]; then echo "/usr/lib/$1"
+  elif [ -e "/usr/lib/x86_64-linux-gnu/$1" ]; then echo "/usr/lib/x86_64-linux-gnu/$1"
+  else return 1; fi
+}
+for name in libmono-native.so libmono-native.so.0 libmono-btls-shared.so \
+            libMonoPosixHelper.so libMonoSupportW.so libgdiplus.so.0; do
+  src="$(find_lib "$name")" || { echo "ERROR: $name not found in /usr/lib[/x86_64-linux-gnu]" >&2; exit 1; }
+  cp -L "$src" "$MONO/lib/$name"
+done
+for name in libgdiplus.so; do  # optional unversioned dev name; runtime only uses .so.0
+  if src="$(find_lib "$name")"; then cp -L "$src" "$MONO/lib/$name"; fi
+done
+
+skip_core() {
+  case "$1" in
+    libc.so*|libm.so*|libdl.so*|libpthread.so*|librt.so*|ld-linux*) return 0 ;;
+    *) return 1 ;;
+  esac
+}
+for pass in 1 2 3 4 5; do
+  copied=0
+  for f in "$MONO"/lib/*.so*; do
+    for src in $(ldd "$f" 2>/dev/null | awk '/=> \//{print $3}'); do
+      name="$(basename "$src")"
+      if skip_core "$name" || [ -e "$MONO/lib/$name" ]; then continue; fi
+      cp -L "$src" "$MONO/lib/$name"
+      copied=1
+    done
+  done
+  if [ "$copied" = 0 ]; then break; fi
+done
 
 cp -a /usr/lib/mono/4.5 "$MONO/lib/mono/4.5"
 cp -a /usr/lib/mono/gac "$MONO/lib/mono/gac"
@@ -47,6 +74,17 @@ if [ -x "$MONO/bin/mono-sgen" ]; then
   export MONO_CFG_DIR="$MONO/etc"
   export MONO_PATH="$MONO/lib/mono/4.5"
   export LD_LIBRARY_PATH="$MONO/lib:$GAME${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
+
+  if [ ! -e "$MONO/lib/libgdiplus.so.0" ]; then
+    echo "WARNING: usr/mono/lib/libgdiplus.so.0 not found - System.Drawing will fail." >&2
+  else
+    MISS="$(ldd "$MONO/lib/libgdiplus.so.0" 2>/dev/null | grep 'not found' || true)"
+    if [ -n "$MISS" ]; then
+      echo "WARNING: bundled libgdiplus.so.0 has unresolved dependencies on this machine:" >&2
+      echo "$MISS" >&2
+      echo "         (rebuild with the updated create-appimage.sh so they get bundled)" >&2
+    fi
+  fi
 
   "$MONO/bin/mono-sgen" ./DuckGame.exe "$@" 2>&1 | tee "$LOGDIR/outputlog.txt"
   exit "${PIPESTATUS[0]}"
