@@ -31,66 +31,16 @@ jobs:
 
       - name: Build with AutoUpdater
         run: msbuild /m /p:Configuration=ReleaseAutoUpdater .
-
-      - name: Zip binaries
+        
+      - name: Create AppImage
         run: |
           sudo apt-get update
-          sudo apt-get install -y zip
-          chmod +x bin/DuckGame.sh
-          mv ./bin ./DuckGameRebuilt
-          cd ./DuckGameRebuilt && zip -r ../DuckGameRebuilt.zip ./* && cd ..
+          sudo apt-get install -y libfuse2
+          bash ./.github/workflows/create-appimage.sh
 
       - name: Upload binaries to release
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: ./DuckGameRebuilt.zip
+          file: ./DuckGameRebuilt.AppImage
           overwrite: true
-
-      - name: Add Project Dependencies [#2]
-        run: |
-          mkdir ./bin
-          cp ./DuckGame/lib/* ./bin
-
-      - name: Build without AutoUpdater
-        run: msbuild /m /p:Configuration=Release .
-
-      - name: Reorganize files for DGR mod
-        run: | 
-          mv ./bin ./Rebuilder/dgr
-          find ./Rebuilder -maxdepth 1 ! \( -name "mod.conf" -o -name "Rebuilder.dll" \) -type f -exec rm {} +
-          rm -r ./Rebuilder/build
-          mkdir ./steammod
-          mv ./Rebuilder ./steammod/Rebuilder
-          # deps/ has Linux .so symlinks (libFAudio.so -> libFAudio.so.0 -> ...).
-          # Steam uploads them as symlinks, and Windows clients can't create them
-          # ("Disk write failure"), so replace each one with a copy of its target.
-          find ./steammod -type l -exec sh -c 'cp --remove-destination "$(readlink -f "$1")" "$1"' _ {} \;
-
-      # The workshop action pastes the changelog straight into item.vdf as
-      # "changenote" "<text>", so any double quote in the release notes ends the
-      # string early and steamcmd fails to parse the file. Swap out the characters
-      # that VDF treats specially before handing the notes over.
-      - name: Sanitize release notes for Steam changenote
-        id: changenote
-        env:
-          RELEASE_BODY: ${{ github.event.release.body }}
-        run: |
-          python3 - <<'EOF'
-          import os
-          note = os.environ.get("RELEASE_BODY", "")
-          note = note.replace("\\", "/").replace('"', "'")
-          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as out:
-              out.write("text<<CHANGENOTE_EOF\n" + note + "\nCHANGENOTE_EOF\n")
-          EOF
-
-      - name: Update DGR mod
-        uses: AnarkisGaming/workshop@v1
-        with:
-          appID: 312530
-          publishedFileID: ${{ vars.WORKSHOP_ID }}
-          path: ./steammod
-          changelog: ${{ steps.changenote.outputs.text }}
-        env:
-          STEAM_ACCOUNT_NAME: "DuckGameRebuilt"
-          STEAM_PASSWORD: ${{ secrets.STEAM_PASS }}
