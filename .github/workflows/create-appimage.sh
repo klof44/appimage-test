@@ -17,7 +17,7 @@ cp -L "$(readlink -f "$(command -v mono-sgen)")" "$MONO/bin/mono-sgen"
 
 cd /usr/lib
 cp libmono-native.so libmono-native.so.0 libmono-btls-shared.so \
-   libMonoPosixHelper.so libMonoWupportW.so \
+   libMonoPosixHelper.so libMonoSupportW.so \
    libgdiplus.so libgdiplus.so.0 "$MONO/lib"
 cd $ROOT
 
