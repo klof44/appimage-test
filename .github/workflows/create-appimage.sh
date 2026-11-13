@@ -128,4 +128,6 @@ curl -fSL --retry 3 -o ./appimagetool.AppImage \
     "https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-x86_64.AppImage"
 chmod +x ./appimagetool.AppImage
 
-ARCH=x86_64 "./appimagetool.AppImage" "$APPDIR" ./DuckGameRebuilt.AppImage
+ARCH=x86_64 "./appimagetool.AppImage" \
+    --updateinformation "gh-releases-zsync|klof44|appimage-test|latest|*.AppImage.zsync" \
+    "$APPDIR" ./DuckGameRebuilt.AppImage
