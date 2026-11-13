@@ -1,4 +1,4 @@
-set -xeuo pipefail
+set -euo pipefail
 
 ROOT=$(pwd)
 DGDIR="$ROOT/bin"
@@ -71,7 +71,7 @@ mkdir -p "$LOGDIR" 2>/dev/null || LOGDIR="$(mktemp -d)"
 
 cd "$GAME" || exit 1
 
-# A) Bundled Mono runtime (default) no system Mono needed
+Bundled Mono runtime (default) no system Mono needed
 if [ -x "$MONO/bin/mono-sgen" ]; then
   echo "AppRun: Using bundled Mono at $MONO" >&2
   export MONO_GAC_PREFIX="$MONO"
@@ -79,22 +79,11 @@ if [ -x "$MONO/bin/mono-sgen" ]; then
   export MONO_PATH="$MONO/lib/mono/4.5"
   export LD_LIBRARY_PATH="$MONO/lib:$GAME${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
 
-  if [ ! -e "$MONO/lib/libgdiplus.so.0" ]; then
-    echo "WARNING: usr/mono/lib/libgdiplus.so.0 not found - System.Drawing will fail." >&2
-  else
-    MISS="$(ldd "$MONO/lib/libgdiplus.so.0" 2>/dev/null | grep 'not found' || true)"
-    if [ -n "$MISS" ]; then
-      echo "WARNING: bundled libgdiplus.so.0 has unresolved dependencies on this machine:" >&2
-      echo "$MISS" >&2
-      echo "         (rebuild with the updated create-appimage.sh so they get bundled)" >&2
-    fi
-  fi
-
   "$MONO/bin/mono-sgen" ./DuckGame.exe "$@" 2>&1 | tee "$LOGDIR/outputlog.txt"
   exit "${PIPESTATUS[0]}"
 fi
 
-# B) System Mono fallback.
+System Mono fallback.
 if command -v mono >/dev/null 2>&1; then
   echo "AppRun: bundled Mono failed, falling back to system mono." >&2
   export LD_LIBRARY_PATH="$GAME${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
@@ -111,7 +100,7 @@ cat > "$APPDIR/DuckGame.desktop" <<EOF
 Type=Application
 Name=Duck Game Rebuilt
 GenericName=Duck Game client
-Comment=Duck Game decompiled & rebuilt with added features (requires Steam)
+Comment=Duck Game decompiled & rebuilt with added features
 Exec=AppRun
 Icon=duckgamerebuilt
 Terminal=false
@@ -129,5 +118,5 @@ curl -fSL --retry 3 -o ./appimagetool.AppImage \
 chmod +x ./appimagetool.AppImage
 
 ARCH=x86_64 "./appimagetool.AppImage" \
-    --updateinformation "gh-releases-zsync|klof44|appimage-test|latest|*.AppImage.zsync" \
+    --updateinformation "gh-releases-zsync|TheFlyingFoool|DuckGameRebuilt|latest|*.AppImage.zsync" \
     "$APPDIR" ./DuckGameRebuilt.AppImage
